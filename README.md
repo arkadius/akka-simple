@@ -38,4 +38,4 @@ future.map { ... }
 ```
 , or looking for some more reasonable ExecutionContext (like `import context.dispatcher` inside *Actor*)
 
-After `import akka.actor.simple` you can just use `future.map { ...  }`.
+After `import akka.actor.simple._` you can just use `future.map { ...  }`.
