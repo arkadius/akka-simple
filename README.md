@@ -1,6 +1,8 @@
 # akka-simple
 Implementation wrappers for akka-actors simplifying actors usage. It was inspired by [lift-actors](http://liftweb.net/).
 
+## Actor defining
+
 Instead of:
 ```scala
 import akka.pattern._
@@ -25,3 +27,15 @@ val actor = new SimpleActor {
 }
 (actor !? "GO") shouldEqual "OK"
 ```
+
+## ExecutionContext
+
+Instead of:
+```scala
+import import scala.concurrent.ExecutionContext.Implicits.global
+
+future.map { ... }
+```
+, or looking for some more reasonable ExecutionContext (like `import context.dispatcher` inside *Actor*)
+
+After `import akka.actor.simple` you can just use `future.map { ...  }`.
