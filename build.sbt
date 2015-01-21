@@ -1,7 +1,5 @@
-import com.banno.license.Plugin.LicenseKeys._
 import com.banno.license.Licenses._
-import sbtrelease._
-import ReleaseStateTransformations._
+import com.banno.license.Plugin.LicenseKeys._
 
 licenseSettings
 
