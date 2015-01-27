@@ -39,3 +39,7 @@ future.map { ... }
 , or looking for some more reasonable ExecutionContext (like `import context.dispatcher` inside *Actor*)
 
 After `import akka.actor.simple._` you can just use `future.map { ...  }`.
+
+## License
+
+The akka-simple is released under version 2.0 of the [Apache License](http://www.apache.org/licenses/LICENSE-2.0).
