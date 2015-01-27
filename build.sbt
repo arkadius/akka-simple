@@ -32,8 +32,9 @@ libraryDependencies ++= {
     "ch.qos.logback"        %  "logback-classic"  % "1.1.2",
     "com.typesafe.akka"    %% "akka-actor"        % akkaV,
     "com.typesafe.akka"    %% "akka-slf4j"        % akkaV,
-    "org.scalatest"        %%  "scalatest"        % "2.2.3" % "test",
-    "com.typesafe.akka"    %% "akka-testkit"      % akkaV % "test"
+    "org.scalatest"        %%  "scalatest"        % "2.2.3"   % "test",
+    "com.typesafe.akka"    %% "akka-testkit"      % akkaV     % "test",
+    "net.liftweb"           % "lift-actor_2.11"   % "3.0-M3"  % "test"
   )
 }
 

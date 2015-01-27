@@ -21,6 +21,7 @@ import akka.pattern.{InfiniteWaitingPromiseActorRef, _}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.ref.WeakReference
 
 abstract class SimpleActor extends SimpleActorImpl {
   def receive: Receive
@@ -30,33 +31,59 @@ abstract class SimpleActor extends SimpleActorImpl {
   def !?(msg: Any, timeout: FiniteDuration): Any = Await.result(this ? (msg, timeout), timeout)
 
   def !?(msg: Any): Any = {
-    val a = InfiniteWaitingPromiseActorRef(provider, targetName = name)
+    val a = InfiniteWaitingPromiseActorRef(provider)
     this.tell(msg, a)
     Await.result(a.result.future, Duration.Inf)
   }
 }
 
-abstract class SimpleActorImpl extends MinimalActorRef {
+protected[simple] abstract class SimpleActorImpl extends MinimalActorRef {
   override def provider: ActorRefProvider = SimpleActorSystem.impl.provider
   override def path: ActorPath = internalActor.path
 
-  protected def name: String = {
-    getClass.getSimpleName.replaceAll("\\$", "_")
-  }
-
-  private var _sender: () => ActorRef = () => SimpleActorSystem.impl.deadLetters
+  private[this] var _sender: () => ActorRef = () => SimpleActorSystem.impl.deadLetters
 
   final def sender(): ActorRef = _sender()
 
   def receive: Receive
 
-  private val internalActor = SimpleActorSystem().actorOf(Props(new Actor {
-    _sender = () => sender()
-    override def receive: Receive = SimpleActorImpl.this.receive
-  }), name)
+  private def internalReceive: Receive = receive
+
+  private def internalUpdateSenderProvider(senderProvider: () => ActorRef): Unit = _sender = senderProvider
+
+  private[this] val internalActor = SimpleActorImpl.createInternalActor(WeakReference(this))
 
   override def !(message: Any)(implicit sender: ActorRef): Unit = {
     internalActor.tell(message, sender)
   }
 
+  override def finalize(): Unit = {
+    // also cleanup real actor
+    internalActor ! PoisonPill
+  }
+}
+
+object SimpleActorImpl {
+
+  // weak reference to avoid circular references and provide possibility to gc SimpleActorImpl
+  private def createInternalActor(actorImpl: WeakReference[SimpleActorImpl]): ActorRef = {
+    SimpleActorSystem().actorOf(Props(new Actor {
+      actorImpl.get.map(_.internalUpdateSenderProvider(() => sender()))
+
+      override def receive: Receive = new PartialFunction[Any, Unit] {
+        // actorImpl.get should at most situation return real reference, orElse handler is used for situation
+        // when SimpleActorImpl is gced but PoisonPill hasn't been delivered yet
+        override def isDefinedAt(x: Any): Boolean =
+          actorImpl.get.map(_.internalReceive.isDefinedAt(x)).getOrElse(true)
+
+        override def apply(v: Any): Unit =
+          actorImpl.get.map(_.internalReceive(v)).getOrElse {
+            // send to dead letter to point that message hasn't been delivered
+            SimpleActorSystem.impl.deadLetters ! v
+            // SimpleActorImpl was gc so we also need a cleanup
+            context.stop(self)
+          }
+      }
+    }))
+  }
 }

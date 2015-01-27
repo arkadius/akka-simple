@@ -172,7 +172,7 @@ private[akka] object InfiniteWaitingPromiseActorRef {
   private case object Stopped
   private case class StoppedWithPath(path: ActorPath)
 
-  def apply(provider: ActorRefProvider, targetName: String): InfiniteWaitingPromiseActorRef = {
+  def apply(provider: ActorRefProvider): InfiniteWaitingPromiseActorRef = {
     val result = Promise[Any]()
     val a = new InfiniteWaitingPromiseActorRef(provider, result)
     implicit val ec = a.internalCallingThreadExecutionContext
