@@ -30,7 +30,7 @@ val actor = new SimpleActor {
 
 ## Memory management
 
-*SimpleActors* are automatic garbage collected if there is no reference to them. So there is no need to send them a PoisonPill or explicitly invoke *context.stop(self)*.
+*SimpleActors* are automatic garbage collected by jvm GC. So there is no need to send them a PoisonPill or explicitly invoke *context.stop(self)*.
 
 ## ExecutionContext
 
