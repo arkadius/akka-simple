@@ -28,6 +28,10 @@ val actor = new SimpleActor {
 (actor !? "GO") shouldEqual "OK"
 ```
 
+## Memory management
+
+*SimpleActors* are automatic garbage collected if there is no reference to them. So there is no need to send them a PoisonPill or explicitly invoke *context.stop(self)*.
+
 ## ExecutionContext
 
 Instead of:
